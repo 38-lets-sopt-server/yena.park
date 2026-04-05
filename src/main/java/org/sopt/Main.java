@@ -1,10 +1,12 @@
 package org.sopt;
 //TIP 코드를 <b>실행</b>하려면 <shortcut actionId="Run"/>을(를) 누르거나
 // 에디터 여백에 있는 <icon src="AllIcons.Actions.Execute"/> 아이콘을 클릭하세요.
+import org.sopt.controller.PostController;
+import org.sopt.dto.request.CreatePostRequest;
+import org.sopt.dto.response.CreatePostResponse;
 import java.util.Scanner;
-
 import java.util.List;
-import java.util.Scanner;
+
 
 public class Main {
     public static void main(String[] args) {
