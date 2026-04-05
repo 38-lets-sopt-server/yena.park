@@ -1,4 +1,4 @@
-package org.sopt.Domain;
+package org.sopt.domain;
 
 public class Post {
     private Long id;          // 게시글 상세 화면 — 특정 게시글 식별용
