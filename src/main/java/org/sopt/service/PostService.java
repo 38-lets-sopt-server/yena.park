@@ -1,6 +1,5 @@
 package org.sopt.service;
-
-import org.sopt.Domain.Post;
+import org.sopt.domain.Post;
 
 import java.util.ArrayList;
 import java.util.List;
