@@ -9,4 +9,11 @@ public class CreatePostResponse {
         this.id = id;
         this.message = message;
     }
+    public Long getId() {
+        return id;
+    }
+
+    public String getMessage() {
+        return message;
+    }
 }
