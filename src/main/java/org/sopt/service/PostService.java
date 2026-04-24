@@ -1,5 +1,6 @@
 package org.sopt.service;
 import lombok.RequiredArgsConstructor;
+import org.sopt.domain.BoardType;
 import org.sopt.domain.Post;
 import org.sopt.dto.request.CreatePostRequest;
 import org.sopt.dto.request.UpdatePostRequest;
@@ -10,7 +11,6 @@ import org.sopt.repository.PostRepository;
 import org.sopt.validator.PostValidator;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,7 +33,8 @@ public class PostService {
                     request.getTitle(),
                     request.getContent(),
                     request.getAuthor(),
-                    createdAt
+                    createdAt,
+                    request.getBoardType()
             );
 
             postRepository.save(post);
@@ -43,8 +44,17 @@ public class PostService {
 
     // READ - 전체
     // 자유게시판 목록 화면에서 호출돼요
-    public List<PostResponse> getAllPosts() {
-        return postRepository.findAll().stream()
+    public List<PostResponse> getAllPosts(int page, int size) {
+        List<Post> posts = postRepository.findAll();
+
+        int start = page * size;
+        int end = Math.min(start + size, posts.size());
+
+        if (start >= posts.size()) {
+            return List.of(); // 범위 벗어나면 빈 리스트
+        }
+
+        return posts.subList(start, end).stream()
                 .map(PostResponse::from)
                 .toList();
     }
@@ -56,6 +66,13 @@ public class PostService {
                 .orElseThrow(() -> new PostNotFoundException(id));
 
         return PostResponse.from(post);
+    }
+
+    public List<PostResponse> getPostsByBoardType(BoardType boardType) {
+        return postRepository.findAll().stream()
+                .filter(post -> post.getBoardType() == boardType)
+                .map(PostResponse::from)
+                .toList();
     }
 
     // UPDATE
