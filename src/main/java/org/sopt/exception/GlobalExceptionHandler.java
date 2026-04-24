@@ -12,22 +12,28 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PostNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handlePostNotFound(PostNotFoundException e) {
+        ErrorStatus status = ErrorStatus.POST_NOT_FOUND;
+
         return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.onFailure(ErrorStatus.POST_NOT_FOUND, null));
+                .status(status.getHttpStatus())
+                .body(ApiResponse.onFailure(status, null));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException e) {
+        ErrorStatus status = ErrorStatus.INVALID_INPUT;
+
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.onFailure(ErrorStatus.INVALID_INPUT, null));
+                .status(status.getHttpStatus())
+                .body(ApiResponse.onFailure(status, null));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+        ErrorStatus status = ErrorStatus.INTERNAL_SERVER_ERROR;
+
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.onFailure(ErrorStatus.INTERNAL_SERVER_ERROR, null));
+                .status(status.getHttpStatus())
+                .body(ApiResponse.onFailure(status, null));
     }
 }
