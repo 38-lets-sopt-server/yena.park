@@ -1,5 +1,6 @@
 package org.sopt.dto.response;
 
+import org.sopt.domain.BoardType;
 import org.sopt.domain.Post;
 
 public record PostResponse(
@@ -7,7 +8,8 @@ public record PostResponse(
         String title,
         String content,
         String author,
-        String createdAt
+        String createdAt,
+        BoardType boardType
 ) {
     public static PostResponse from(Post post) {
         return new PostResponse(
@@ -15,7 +17,8 @@ public record PostResponse(
                 post.getTitle(),
                 post.getContent(),
                 post.getAuthor(),
-                post.getCreatedAt()
+                post.getCreatedAt(),
+                post.getBoardType()
         );
     }
 }
