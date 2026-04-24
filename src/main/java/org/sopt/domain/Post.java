@@ -21,8 +21,11 @@ public class Post {
     public String getAuthor() { return author; }
     public String getCreatedAt() { return createdAt; }
 
-    public void update(String title, String content) {
+    public void updateTitle(String title) {
         this.title = title;
+    }
+
+    public void updateContent(String content) {
         this.content = content;
     }
 
