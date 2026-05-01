@@ -1,27 +1,46 @@
 package org.sopt.domain;
 
-public class Post {
+import jakarta.persistence.*;
+import org.sopt.domain.common.BaseTimeEntity;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
+
+import java.time.LocalDateTime;
+
+@SQLDelete(sql = "UPDATE post SET deleted_at = NOW() WHERE id = ?")
+@Where(clause = "deleted_at IS NULL")
+@Entity
+public class Post extends BaseTimeEntity {
+    @Id // 앞에서 배운 PK
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;          // 게시글 상세 화면 — 특정 게시글 식별용
     private String title;     // 목록, 상세, 글쓰기 화면 — 제목
-    private String content;   // 목록(미리보기), 상세(전체) 화면 — 내용
-    private String author;    // 목록, 상세 화면 — 글쓴이
-    private String createdAt; // 목록, 상세 화면 — 작성 시각
+    private String content;// 목록(미리보기), 상세(전체) 화면 — 내용
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Enumerated(EnumType.STRING)
     private BoardType boardType;
 
-    public Post(Long id, String title, String content, String author, String createdAt, BoardType boardType) {
-        this.id = id;
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    // 좋아요 수 추가
+    private Long likeCount = 0L;
+    // 낙관적 락 필드
+    @Version
+    private Long version;
+
+    protected Post() {}  // JPA 기본 생성자
+
+    public Post( String title, String content,User user,BoardType boardType) {
         this.title = title;
         this.content = content;
-        this.author = author;
-        this.createdAt = createdAt;
+        this.user = user;
         this.boardType = boardType;
     }
-
-    public Long getId() { return id; }
-    public String getTitle() { return title; }
-    public String getContent() { return content; }
-    public String getAuthor() { return author; }
-    public String getCreatedAt() { return createdAt; }
 
     public void updateTitle(String title) {
         this.title = title;
@@ -31,12 +50,36 @@ public class Post {
         this.content = content;
     }
 
-    public String getInfo() {
-        return "[" + id + "] " + title + " - " + author + " (" + createdAt + ")\n" + content;
+    public Long getId() {
+        return id;
     }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
     public BoardType getBoardType() {
         return boardType;
     }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
+    }
+
 }
 
 
