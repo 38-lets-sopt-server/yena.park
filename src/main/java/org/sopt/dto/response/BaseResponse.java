@@ -2,22 +2,22 @@ package org.sopt.dto.response;
 
 import org.sopt.common.code.BaseCode;
 
-public class ApiResponse<T> {
+public class BaseResponse<T> {
 
     private final boolean success;
     private final String code;
     private final String message;
     private final T result;
 
-    public ApiResponse(boolean success, String code, String message, T result) {
+    public BaseResponse(boolean success, String code, String message, T result) {
         this.success = success;
         this.code = code;
         this.message = message;
         this.result = result;
     }
 
-    public static <T> ApiResponse<T> of(BaseCode code, T result) {
-        return new ApiResponse<>(
+    public static <T> BaseResponse<T> of(BaseCode code, T result) {
+        return new BaseResponse<>(
                 true,
                 code.getCode(),
                 code.getMessage(),
@@ -25,8 +25,8 @@ public class ApiResponse<T> {
         );
     }
 
-    public static <T> ApiResponse<T> onFailure(BaseCode code, T result) {
-        return new ApiResponse<>(
+    public static <T> BaseResponse<T> onFailure(BaseCode code, T result) {
+        return new BaseResponse<>(
                 false,
                 code.getCode(),
                 code.getMessage(),
