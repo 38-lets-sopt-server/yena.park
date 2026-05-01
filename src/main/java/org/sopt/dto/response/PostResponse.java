@@ -3,22 +3,30 @@ package org.sopt.dto.response;
 import org.sopt.domain.BoardType;
 import org.sopt.domain.Post;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public record PostResponse(
         Long id,
         String title,
         String content,
         String author,
-        String createdAt,
-        BoardType boardType
+        LocalDateTime createdAt,
+        BoardType boardType,
+        Long likeCount
 ) {
-    public static PostResponse from(Post post) {
+    public static PostResponse from(Post post,Long likeCount) {
         return new PostResponse(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
-                post.getAuthor(),
+                post.getUser().getNickname(),
                 post.getCreatedAt(),
-                post.getBoardType()
+                post.getBoardType(),
+                likeCount
         );
+    }
+    public static PostResponse from(Post post) {
+        return from(post, 0L);
     }
 }
