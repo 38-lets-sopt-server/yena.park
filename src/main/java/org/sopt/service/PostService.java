@@ -148,7 +148,9 @@ public class PostService {
         }
 
         likeRepository.deleteByUserAndPost(user, post);
-        post.decreaseLikeCount();
+
+        long count = likeRepository.countByPost(post);
+        post.updateLikeCount(count);
     }
 
     public void addLikeWithRetry(Long postId, Long userId) {
