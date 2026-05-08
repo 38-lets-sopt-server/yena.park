@@ -80,6 +80,10 @@ public class Post extends BaseTimeEntity {
         }
     }
 
+    public void updateLikeCount(long count) {
+        this.likeCount = count;
+    }
+
 }
 
 
