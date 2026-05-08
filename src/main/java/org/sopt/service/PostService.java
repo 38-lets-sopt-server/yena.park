@@ -136,18 +136,16 @@ public class PostService {
     //좋아요 취소
     @Transactional
     public void removeLike(Long postId, Long userId) {
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_NOT_FOUND));
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.POST_NOT_FOUND));
 
-        if (!likeRepository.existsByUserAndPost(user, post)) {
-            throw new NotFoundException(ErrorStatus.LIKE_NOT_FOUND);
-        }
+        Like like = likeRepository.findByUserAndPost(user, post)
+                .orElseThrow(() -> new NotFoundException(ErrorStatus.LIKE_NOT_FOUND));
 
-        likeRepository.deleteByUserAndPost(user, post);
+        likeRepository.delete(like);
 
         long count = likeRepository.countByPost(post);
         post.updateLikeCount(count);
