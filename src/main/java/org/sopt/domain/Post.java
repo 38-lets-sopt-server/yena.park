@@ -7,7 +7,7 @@ import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 
-@SQLDelete(sql = "UPDATE post SET deleted_at = NOW() WHERE id = ?")
+@SQLDelete(sql = "UPDATE post SET deleted_at = NOW() WHERE id = ? AND version = ?")
 @Where(clause = "deleted_at IS NULL")
 @Entity
 public class Post extends BaseTimeEntity {
