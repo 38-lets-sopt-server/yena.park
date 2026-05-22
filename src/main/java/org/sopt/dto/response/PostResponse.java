@@ -15,7 +15,7 @@ public record PostResponse(
         BoardType boardType,
         Long likeCount
 ) {
-    public static PostResponse from(Post post,Long likeCount) {
+    public static PostResponse from(Post post) {
         return new PostResponse(
                 post.getId(),
                 post.getTitle(),
@@ -23,10 +23,8 @@ public record PostResponse(
                 post.getUser().getNickname(),
                 post.getCreatedAt(),
                 post.getBoardType(),
-                likeCount
+                post.getLikeCount()
+
         );
-    }
-    public static PostResponse from(Post post) {
-        return from(post, 0L);
     }
 }
