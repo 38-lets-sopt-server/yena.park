@@ -1,9 +1,11 @@
 package org.sopt.service;
-import org.sopt.common.code.CommonErrorStatus;
 import org.sopt.domain.BoardType;
-import org.sopt.domain.Like;
 import org.sopt.domain.Post;
+import org.sopt.domain.PostLike;
 import org.sopt.domain.User;
+import org.sopt.domain.like.exception.LikeErrorStatus;
+import org.sopt.domain.post.exception.PostErrorStatus;
+import org.sopt.domain.user.exception.UserErrorStatus;
 import org.sopt.dto.request.CreatePostRequest;
 import org.sopt.dto.request.UpdatePostRequest;
 import org.sopt.dto.response.CreatePostResponse;
@@ -15,7 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.sopt.repository.LikeRepository;
+import org.sopt.repository.PostLikeRepository;
 import org.sopt.common.exception.ConflictException;
 
 import java.util.List;
@@ -25,44 +27,51 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
-    private final LikeRepository likeRepository;
+    private final PostLikeRepository postLikeRepository;
 
 
     public PostService(
             PostRepository postRepository,
             UserRepository userRepository,
-            LikeRepository likeRepository
+            PostLikeRepository postLikeRepository
     ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
-        this.likeRepository = likeRepository;
+        this.postLikeRepository = postLikeRepository;
     }
 
 
     // CREATE
-    @Transactional  // 저장 → DB 변경 발생 → 트랜잭션 커밋 시 반영
-    public CreatePostResponse createPost(CreatePostRequest request,Long userId){
+    @Transactional
+    public CreatePostResponse createPost(CreatePostRequest request, Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.USER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(UserErrorStatus.USER_NOT_FOUND));
 
         Post post = new Post(
                 request.title(),
                 request.content(),
                 user,
                 request.boardType()
-            );
+        );
 
-            postRepository.save(post);
+        postRepository.save(post);
 
-            return new CreatePostResponse(post.getId(), "게시글 등록 완료!");
+        return new CreatePostResponse(post.getId(), "게시글 등록 완료!");
     }
 
     // READ - 전체
     // 자유게시판 목록 화면에서 호출돼요
     @Transactional(readOnly = true)
-    public List<PostResponse> getAllPosts(int page, int size) {
-        return postRepository.findAllWithLikeCount(PageRequest.of(page, size))
-                .getContent();
+    public List<PostResponse> getAllPosts(int page, int size, BoardType boardType) {
+        if (boardType == null) {
+            return postRepository.findAllWithLikeCount(PageRequest.of(page, size))
+                    .getContent();
+        }
+
+        return postRepository.findAllByBoardType(boardType, PageRequest.of(page, size))
+                .stream()
+                .map(PostResponse::from)
+                .toList();
     }
 
     // READ - 단건
@@ -70,21 +79,10 @@ public class PostService {
     @Transactional(readOnly = true)  // 조회 전용 → 더티 체킹 안 함 → 성능 최적화
     public PostResponse getPost(Long id) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.POST_NOT_FOUND));
-        long likeCount = likeRepository.countByPost(post);
-        return PostResponse.from(post, likeCount);
+                .orElseThrow(() -> new NotFoundException(PostErrorStatus.POST_NOT_FOUND));
+        return PostResponse.from(post);
     }
 
-    @Transactional(readOnly = true)
-    public List<PostResponse> getPostsByBoardType(BoardType boardType) {
-        return postRepository.findAllByBoardType(boardType)
-                .stream()
-                .map(post -> {
-                    long likeCount = likeRepository.countByPost(post);
-                    return PostResponse.from(post, likeCount);
-                })
-                .toList();
-    }
 
     // UPDATE
     // 게시글 수정 화면에서 "완료"를 누르면 호출돼요
@@ -92,8 +90,7 @@ public class PostService {
     public void updatePost(Long id, UpdatePostRequest request) {
 
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.POST_NOT_FOUND));
-
+                .orElseThrow(() -> new NotFoundException(PostErrorStatus.POST_NOT_FOUND));
         if (request.title() != null) {
             post.updateTitle(request.title());
         }
@@ -108,47 +105,46 @@ public class PostService {
     @Transactional
     public void deletePost(Long id) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.POST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(PostErrorStatus.POST_NOT_FOUND));
 
         postRepository.delete(post);
     }
-    //Like
-    //좋아요 추가
+    // 좋아요 추가
     @Transactional
     public void addLike(Long postId, Long userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.USER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(UserErrorStatus.USER_NOT_FOUND));
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.POST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(PostErrorStatus.POST_NOT_FOUND));
 
-        if (likeRepository.existsByUserAndPost(user, post)) {
-            throw new ConflictException(CommonErrorStatus.LIKE_ALREADY_EXISTS);
+        if (postLikeRepository.existsByUserAndPost(user, post)) {
+            throw new ConflictException(LikeErrorStatus.LIKE_ALREADY_EXISTS);
         }
 
-        Like like = new Like(user, post);
-        likeRepository.save(like);
+        PostLike postLike = new PostLike(user, post);
+        postLikeRepository.save(postLike);
 
         post.increaseLikeCount();
     }
 
-    //좋아요 취소
+    // 좋아요 취소
     @Transactional
     public void removeLike(Long postId, Long userId) {
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.USER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(UserErrorStatus.USER_NOT_FOUND));
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.POST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(PostErrorStatus.POST_NOT_FOUND));
 
-        Like like = likeRepository.findByUserAndPost(user, post)
-                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.LIKE_NOT_FOUND));
+        PostLike postLike = postLikeRepository.findByUserAndPost(user, post)
+                .orElseThrow(() -> new NotFoundException(LikeErrorStatus.LIKE_NOT_FOUND));
 
-        likeRepository.delete(like);
+        postLikeRepository.delete(postLike);
 
-        long count = likeRepository.countByPost(post);
-        post.updateLikeCount(count);
+        post.decreaseLikeCount();
     }
 
     public void addLikeWithRetry(Long postId, Long userId) {

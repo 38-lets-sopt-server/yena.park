@@ -3,8 +3,8 @@ package org.sopt.repository;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.sopt.domain.QLike;
 import org.sopt.domain.QPost;
+import org.sopt.domain.QPostLike;
 import org.sopt.domain.QUser;
 import org.sopt.dto.response.PostResponse;
 
@@ -20,7 +20,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
     QPost post = QPost.post;
     QUser user = QUser.user;
-    QLike like = QLike.like;
+    QPostLike postLike = QPostLike.postLike;
 
     @Override
     public List<PostResponse> searchPosts(String keyword, String nickname) {
@@ -33,11 +33,11 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                         user.nickname,
                         post.createdAt,
                         post.boardType,
-                        like.id.count()
+                        postLike.id.count()
                 ))
                 .from(post)
                 .join(post.user, user)
-                .leftJoin(like).on(like.post.eq(post))
+                .leftJoin(postLike).on(postLike.post.eq(post))
                 .where(
                         titleContains(keyword),
                         nicknameEq(nickname)

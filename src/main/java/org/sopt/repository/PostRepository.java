@@ -9,11 +9,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import java.util.List;
 
 @Repository
-public interface PostRepository extends JpaRepository<Post, Long> ,PostRepositoryCustom{
-    List<Post> findAllByBoardType(BoardType boardType);
+public interface PostRepository extends JpaRepository<Post, Long>, PostRepositoryCustom {
+
+    Page<Post> findAllByBoardType(BoardType boardType, Pageable pageable);
+
     @Query(
             value = """
             SELECT new org.sopt.dto.response.PostResponse(
@@ -23,11 +26,11 @@ public interface PostRepository extends JpaRepository<Post, Long> ,PostRepositor
                 u.nickname,
                 p.createdAt,
                 p.boardType,
-                COUNT(l.id)
+                COUNT(pl.id)
             )
             FROM Post p
             JOIN p.user u
-            LEFT JOIN Like l ON l.post = p
+            LEFT JOIN PostLike pl ON pl.post = p
             GROUP BY p.id, p.title, p.content, u.nickname, p.createdAt, p.boardType
             ORDER BY p.createdAt DESC
         """,
@@ -39,10 +42,10 @@ public interface PostRepository extends JpaRepository<Post, Long> ,PostRepositor
     Page<PostResponse> findAllWithLikeCount(Pageable pageable);
 
     @Query("""
-    SELECT p
-    FROM Post p
-    JOIN FETCH p.user
-    WHERE p.title LIKE %:keyword%
-""")
+        SELECT p
+        FROM Post p
+        JOIN FETCH p.user
+        WHERE p.title LIKE %:keyword%
+    """)
     List<Post> searchByTitle(@Param("keyword") String keyword);
 }
