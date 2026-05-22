@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.sopt.domain.BoardType;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.sopt.common.code.SuccessStatus;
 import org.sopt.dto.request.CreatePostRequest;
@@ -39,9 +40,11 @@ public class PostController {
     })
     @PostMapping
     public ResponseEntity<BaseResponse<CreatePostResponse>> createPost(
-            @Valid @RequestBody CreatePostRequest request
+            @Valid @RequestBody CreatePostRequest request,
+            Authentication authentication
     ) {
-        CreatePostResponse response = postService.createPost(request);
+        Long userId = Long.parseLong(authentication.getName());
+        CreatePostResponse response = postService.createPost(request, userId);
         SuccessStatus status = SuccessStatus.POST_CREATE_SUCCESS;
 
         return ResponseEntity
@@ -143,19 +146,29 @@ public class PostController {
     @PostMapping("/{postId}/likes")
     public ResponseEntity<BaseResponse<Void>> addLike(
             @PathVariable Long postId,
-            @RequestParam Long userId
+            Authentication authentication
     ) {
+        Long userId = Long.parseLong(authentication.getName());
+
         postService.addLikeWithRetry(postId, userId);
-        return ResponseEntity.ok(BaseResponse.of(SuccessStatus.POST_UPDATE_SUCCESS, null));
+
+        return ResponseEntity.ok(
+                BaseResponse.of(SuccessStatus.POST_UPDATE_SUCCESS, null)
+        );
     }
 
     @DeleteMapping("/{postId}/likes")
     public ResponseEntity<BaseResponse<Void>> removeLike(
             @PathVariable Long postId,
-            @RequestParam Long userId
+            Authentication authentication
     ) {
+        Long userId = Long.parseLong(authentication.getName());
+
         postService.removeLikeWithRetry(postId, userId);
-        return ResponseEntity.ok(BaseResponse.of(SuccessStatus.POST_UPDATE_SUCCESS, null));
+
+        return ResponseEntity.ok(
+                BaseResponse.of(SuccessStatus.POST_UPDATE_SUCCESS, null)
+        );
     }
 
     @GetMapping("/search")

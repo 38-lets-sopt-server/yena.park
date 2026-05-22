@@ -41,8 +41,8 @@ public class PostService {
 
     // CREATE
     @Transactional  // 저장 → DB 변경 발생 → 트랜잭션 커밋 시 반영
-    public CreatePostResponse createPost(CreatePostRequest request){
-        User user = userRepository.findById(request.userId())
+    public CreatePostResponse createPost(CreatePostRequest request,Long userId){
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_NOT_FOUND));
 
         Post post = new Post(
