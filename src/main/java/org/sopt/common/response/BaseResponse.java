@@ -26,6 +26,15 @@ public class BaseResponse<T> {
         );
     }
 
+    public static BaseResponse<Void> of(SuccessCode code) {
+        return new BaseResponse<>(
+                true,
+                code.getCode(),
+                code.getMessage(),
+                null
+        );
+    }
+
     public static <T> BaseResponse<T> onFailure(ErrorCode code, T result) {
         return new BaseResponse<>(
                 false,
