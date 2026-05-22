@@ -6,8 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-//TODO : global 추가하기??
-
 @Configuration
 @EnableJpaAuditing
 public class JpaAuditingConfig {

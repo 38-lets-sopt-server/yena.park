@@ -13,6 +13,5 @@ public record GoogleUserInfoResponse(
         String name,
         String picture
 
-        //TODO sub랑 picture쓰는 이유
 ) {
 }

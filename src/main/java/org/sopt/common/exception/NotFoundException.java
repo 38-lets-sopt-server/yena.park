@@ -1,10 +1,10 @@
 package org.sopt.common.exception;
 
-import org.sopt.common.code.CommonErrorStatus;
+import org.sopt.common.code.ErrorCode;
 
 public class NotFoundException extends BusinessException {
 
-    public NotFoundException(CommonErrorStatus commonErrorStatus) {
-        super(commonErrorStatus);
+    public NotFoundException(ErrorCode errorCode) {
+        super(errorCode);
     }
 }

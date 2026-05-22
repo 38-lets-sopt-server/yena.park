@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.sopt.dto.request.GoogleLoginRequest;
-import org.sopt.dto.response.BaseResponse;
+import org.sopt.common.response.BaseResponse;
 import org.sopt.common.code.SuccessStatus;
 import org.sopt.dto.response.TokenResponse;
 import org.sopt.dto.response.UserResponse;
