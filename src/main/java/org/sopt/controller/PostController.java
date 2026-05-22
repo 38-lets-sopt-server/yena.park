@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.sopt.common.code.SuccessStatus;
 import org.sopt.dto.request.CreatePostRequest;
 import org.sopt.dto.request.UpdatePostRequest;
-import org.sopt.dto.response.BaseResponse;
+import org.sopt.common.response.BaseResponse;
 import org.sopt.dto.response.CreatePostResponse;
 import org.sopt.dto.response.PostResponse;
 import org.sopt.service.PostService;

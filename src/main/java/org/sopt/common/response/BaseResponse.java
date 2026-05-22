@@ -1,6 +1,7 @@
-package org.sopt.dto.response;
+package org.sopt.common.response;
 
-import org.sopt.common.code.BaseCode;
+import org.sopt.common.code.ErrorCode;
+import org.sopt.common.code.SuccessCode;
 
 public class BaseResponse<T> {
 
@@ -16,7 +17,7 @@ public class BaseResponse<T> {
         this.result = result;
     }
 
-    public static <T> BaseResponse<T> of(BaseCode code, T result) {
+    public static <T> BaseResponse<T> of(SuccessCode code, T result) {
         return new BaseResponse<>(
                 true,
                 code.getCode(),
@@ -25,7 +26,7 @@ public class BaseResponse<T> {
         );
     }
 
-    public static <T> BaseResponse<T> onFailure(BaseCode code, T result) {
+    public static <T> BaseResponse<T> onFailure(ErrorCode code, T result) {
         return new BaseResponse<>(
                 false,
                 code.getCode(),

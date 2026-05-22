@@ -1,5 +1,5 @@
 package org.sopt.service;
-import org.sopt.common.code.ErrorStatus;
+import org.sopt.common.code.CommonErrorStatus;
 import org.sopt.domain.BoardType;
 import org.sopt.domain.Like;
 import org.sopt.domain.Post;
@@ -8,7 +8,7 @@ import org.sopt.dto.request.CreatePostRequest;
 import org.sopt.dto.request.UpdatePostRequest;
 import org.sopt.dto.response.CreatePostResponse;
 import org.sopt.dto.response.PostResponse;
-import org.sopt.exception.NotFoundException;
+import org.sopt.common.exception.NotFoundException;
 import org.sopt.repository.PostRepository;
 import org.sopt.repository.UserRepository;
 import org.springframework.data.domain.PageRequest;
@@ -16,7 +16,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.sopt.repository.LikeRepository;
-import org.sopt.exception.ConflictException;
+import org.sopt.common.exception.ConflictException;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public class PostService {
     @Transactional  // 저장 → DB 변경 발생 → 트랜잭션 커밋 시 반영
     public CreatePostResponse createPost(CreatePostRequest request,Long userId){
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.USER_NOT_FOUND));
 
         Post post = new Post(
                 request.title(),
@@ -70,7 +70,7 @@ public class PostService {
     @Transactional(readOnly = true)  // 조회 전용 → 더티 체킹 안 함 → 성능 최적화
     public PostResponse getPost(Long id) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.POST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.POST_NOT_FOUND));
         long likeCount = likeRepository.countByPost(post);
         return PostResponse.from(post, likeCount);
     }
@@ -92,7 +92,7 @@ public class PostService {
     public void updatePost(Long id, UpdatePostRequest request) {
 
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.POST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.POST_NOT_FOUND));
 
         if (request.title() != null) {
             post.updateTitle(request.title());
@@ -108,7 +108,7 @@ public class PostService {
     @Transactional
     public void deletePost(Long id) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.POST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.POST_NOT_FOUND));
 
         postRepository.delete(post);
     }
@@ -118,13 +118,13 @@ public class PostService {
     public void addLike(Long postId, Long userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.USER_NOT_FOUND));
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.POST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.POST_NOT_FOUND));
 
         if (likeRepository.existsByUserAndPost(user, post)) {
-            throw new ConflictException(ErrorStatus.LIKE_ALREADY_EXISTS);
+            throw new ConflictException(CommonErrorStatus.LIKE_ALREADY_EXISTS);
         }
 
         Like like = new Like(user, post);
@@ -137,13 +137,13 @@ public class PostService {
     @Transactional
     public void removeLike(Long postId, Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.USER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.USER_NOT_FOUND));
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.POST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.POST_NOT_FOUND));
 
         Like like = likeRepository.findByUserAndPost(user, post)
-                .orElseThrow(() -> new NotFoundException(ErrorStatus.LIKE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CommonErrorStatus.LIKE_NOT_FOUND));
 
         likeRepository.delete(like);
 

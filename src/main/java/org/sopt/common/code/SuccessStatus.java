@@ -2,7 +2,7 @@ package org.sopt.common.code;
 
 import org.springframework.http.HttpStatus;
 
-public enum SuccessStatus implements BaseCode {
+public enum SuccessStatus implements SuccessCode {
 
     LOGIN_SUCCESS(HttpStatus.OK, "AUTH_200", "로그인 성공"),
     USER_INFO_READ_SUCCESS(HttpStatus.OK, "USER_200", "내 정보 조회 성공"),
@@ -24,6 +24,7 @@ public enum SuccessStatus implements BaseCode {
         this.message = message;
     }
 
+    @Override
     public HttpStatus getHttpStatus() {
         return httpStatus;
     }
