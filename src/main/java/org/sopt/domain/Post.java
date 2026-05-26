@@ -70,6 +70,10 @@ public class Post extends BaseTimeEntity {
         return user;
     }
 
+    public Long getLikeCount() {
+        return likeCount;
+    }
+
     public void increaseLikeCount() {
         this.likeCount++;
     }
@@ -83,6 +87,8 @@ public class Post extends BaseTimeEntity {
     public void updateLikeCount(long count) {
         this.likeCount = count;
     }
+
+
 
 }
 

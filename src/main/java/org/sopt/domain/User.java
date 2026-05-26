@@ -1,10 +1,6 @@
 package org.sopt.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")  // "user"는 SQL 예약어라 테이블명을 변경해요
@@ -14,15 +10,21 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // 자동으로 ID
     private Long id;
 
+    @Column(nullable = false)
     private String nickname;
 
+    @Column(nullable = false)
     private String email;
+
+    @Column(nullable = true)
+    private String password;
 
     protected User() {}
 
-    public User(String nickname, String email) {
+    public User(String nickname, String email,String password) {
         this.nickname = nickname;
         this.email = email;
+        this.password =password;
     }
 
     public Long getId() {
@@ -35,5 +37,13 @@ public class User {
 
     public String getEmail() {
         return this.email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public static User googleUser(String nickname, String email) {
+        return new User(nickname, email, null);
     }
 }

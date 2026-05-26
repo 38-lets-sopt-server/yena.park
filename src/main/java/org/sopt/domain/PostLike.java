@@ -9,7 +9,7 @@ import jakarta.persistence.*;
                 @UniqueConstraint(columnNames = {"user_id", "post_id"})
         }
 )
-public class Like {
+public class PostLike {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,9 +23,10 @@ public class Like {
     @JoinColumn(name = "post_id")
     private Post post;
 
-    protected Like() {}
+    protected PostLike() {
+    }
 
-    public Like(User user, Post post) {
+    public PostLike(User user, Post post) {
         this.user = user;
         this.post = post;
     }
