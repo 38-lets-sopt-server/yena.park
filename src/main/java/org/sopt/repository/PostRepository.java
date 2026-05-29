@@ -41,11 +41,14 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
     )
     Page<PostResponse> findAllWithLikeCount(Pageable pageable);
 
-    @Query("""
-        SELECT p
-        FROM Post p
-        JOIN FETCH p.user
-        WHERE p.title LIKE %:keyword%
-    """)
+    @Query(
+            value = """
+        SELECT *
+        FROM post
+        WHERE MATCH(title) AGAINST (:keyword IN NATURAL LANGUAGE MODE)
+        ORDER BY created_at DESC
+    """,
+            nativeQuery = true
+    )
     List<Post> searchByTitle(@Param("keyword") String keyword);
 }
