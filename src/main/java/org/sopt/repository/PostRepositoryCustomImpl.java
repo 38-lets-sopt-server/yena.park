@@ -1,69 +1,90 @@
 package org.sopt.repository;
 
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.sopt.domain.QPost;
-import org.sopt.domain.QPostLike;
-import org.sopt.domain.QUser;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import org.sopt.domain.BoardType;
 import org.sopt.dto.response.PostResponse;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
-    private final JPAQueryFactory queryFactory;
+    private final EntityManager entityManager;
 
-    public PostRepositoryCustomImpl(JPAQueryFactory queryFactory) {
-        this.queryFactory = queryFactory;
+    public PostRepositoryCustomImpl(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
-
-    QPost post = QPost.post;
-    QUser user = QUser.user;
-    QPostLike postLike = QPostLike.postLike;
 
     @Override
     public List<PostResponse> searchPosts(String keyword, String nickname) {
-        return queryFactory
-                .select(Projections.constructor(
-                        PostResponse.class,
-                        post.id,
-                        post.title,
-                        post.content,
-                        user.nickname,
-                        post.createdAt,
-                        post.boardType,
-                        postLike.id.count()
+        StringBuilder sql = new StringBuilder("""
+            SELECT
+                p.id,
+                p.title,
+                p.content,
+                u.nickname,
+                p.created_at,
+                p.board_type,
+                COUNT(pl.id) AS like_count
+            FROM post p
+            JOIN users u ON p.user_id = u.id
+            LEFT JOIN post_likes pl ON pl.post_id = p.id
+            WHERE p.deleted_at IS NULL
+        """);
+
+        if (keyword != null && !keyword.isBlank()) {
+            sql.append("""
+                AND MATCH(p.title) AGAINST (:keyword IN NATURAL LANGUAGE MODE)
+            """);
+        }
+
+        if (nickname != null && !nickname.isBlank()) {
+            sql.append("""
+                AND u.nickname = :nickname
+            """);
+        }
+
+        sql.append("""
+            GROUP BY p.id, p.title, p.content, u.nickname, p.created_at, p.board_type
+            ORDER BY p.created_at DESC
+        """);
+
+        Query query = entityManager.createNativeQuery(sql.toString());
+
+        if (keyword != null && !keyword.isBlank()) {
+            query.setParameter("keyword", keyword);
+        }
+
+        if (nickname != null && !nickname.isBlank()) {
+            query.setParameter("nickname", nickname);
+        }
+
+        List<Object[]> results = query.getResultList();
+
+        return results.stream()
+                .map(row -> new PostResponse(
+                        ((Number) row[0]).longValue(),
+                        (String) row[1],
+                        (String) row[2],
+                        (String) row[3],
+                        toLocalDateTime(row[4]),
+                        BoardType.valueOf((String) row[5]),
+                        ((Number) row[6]).longValue()
                 ))
-                .from(post)
-                .join(post.user, user)
-                .leftJoin(postLike).on(postLike.post.eq(post))
-                .where(
-                        titleContains(keyword),
-                        nicknameEq(nickname)
-                )
-                .groupBy(
-                        post.id,
-                        post.title,
-                        post.content,
-                        user.nickname,
-                        post.createdAt,
-                        post.boardType
-                )
-                .fetch();
+                .toList();
     }
 
-    private BooleanExpression titleContains(String keyword) {
-        if (keyword == null || keyword.isBlank()) {
-            return null;
+    private LocalDateTime toLocalDateTime(Object value) {
+        if (value instanceof Timestamp timestamp) {
+            return timestamp.toLocalDateTime();
         }
-        return post.title.contains(keyword);
-    }
 
-    private BooleanExpression nicknameEq(String nickname) {
-        if (nickname == null || nickname.isBlank()) {
-            return null;
+        if (value instanceof LocalDateTime localDateTime) {
+            return localDateTime;
         }
-        return user.nickname.eq(nickname);
+
+        throw new IllegalArgumentException("지원하지 않는 날짜 타입입니다: " + value.getClass());
     }
 }
